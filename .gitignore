@@ -1,0 +1,29 @@
+# Node
+node_modules
+dist
+npm-debug.log*
+yarn-error.log*
+pnpm-lock.yaml
+package-lock.json
+
+# Env
+.env
+
+# auth codes
+keys.txt
+
+# OS / IDE
+.DS_Store
+.idea
+.vscode
+
+# Temp outputs
+hls_api_outputs/
+**/hls_api_outputs
+
+# ignore output csv files
+*.csv
+**/*.csv
+
+# ignore archive folder
+archive
