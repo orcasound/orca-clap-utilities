@@ -28,3 +28,6 @@ csv/
 
 # ignore archive folder
 archive/
+json/
+**/all-detections.json
+all-detections.json

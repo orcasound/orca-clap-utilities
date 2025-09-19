@@ -5,7 +5,8 @@
 // Optional:
 //   --endpoint https://live.orcasound.net/graphql
 //   --limit 250
-//   --out all-detections/all-detections.json
+//   --out json/detections.json
+//   --nodeName rpi_sunset_bay     <-- filter by feed.nodeName (case-insensitive)
 
 const fs = require("node:fs/promises");
 const path = require("node:path");
@@ -24,10 +25,8 @@ const ENDPOINT = flag("endpoint", process.env.ORCASOUND_GQL || "https://live.orc
 const LIMIT = Number(flag("limit", 250));
 const SINCE_ISO = flag("since", null);
 const ALL = !!flag("all", false);
-const OUT_PATH = flag(
-  "out",
-  path.join(process.cwd(), "all-detections", "all-detections.json")
-);
+const OUT_PATH = flag("out", path.join(process.cwd(), "json", "detections.json"));
+const NODE_NAME = flag("nodeName", null); // optional filter
 
 // -------- GraphQL --------
 const QUERY = `
@@ -67,7 +66,7 @@ async function fetchJSON(url, init, retries = 3) {
     } catch (e) {
       lastErr = e;
       // small backoff
-      await new Promise(r => setTimeout(r, 250 * (i + 1)));
+      await new Promise((r) => setTimeout(r, 250 * (i + 1)));
     }
   }
   throw lastErr;
@@ -109,6 +108,12 @@ function detectionMillis(det) {
   return NaN;
 }
 
+function matchesNodeName(det, want) {
+  if (!want) return true; // no filter
+  const have = det?.feed?.nodeName;
+  return typeof have === "string" && have.toLowerCase() === String(want).toLowerCase();
+}
+
 async function fetchAllDetections() {
   const cutoff = parseSinceMillis();
 
@@ -126,16 +131,19 @@ async function fetchAllDetections() {
 
     // Append filtered items
     for (const det of page) {
-      if (det?.id && !seen.has(det.id)) {
-        if (cutoff == null) {
+      if (!det?.id || seen.has(det.id)) continue;
+
+      // nodeName filter (client-side)
+      if (!matchesNodeName(det, NODE_NAME)) continue;
+
+      if (cutoff == null) {
+        all.push(det);
+        seen.add(det.id);
+      } else {
+        const ms = detectionMillis(det);
+        if (!Number.isNaN(ms) && ms >= cutoff) {
           all.push(det);
           seen.add(det.id);
-        } else {
-          const ms = detectionMillis(det);
-          if (!Number.isNaN(ms) && ms >= cutoff) {
-            all.push(det);
-            seen.add(det.id);
-          }
         }
       }
     }
@@ -145,7 +153,7 @@ async function fetchAllDetections() {
     offset += LIMIT;
 
     // Politeness
-    await new Promise(r => setTimeout(r, 120));
+    await new Promise((r) => setTimeout(r, 120));
   }
 
   return all;
@@ -157,9 +165,10 @@ async function main() {
     await fs.mkdir(outDir, { recursive: true });
 
     console.log(
-      `Querying detections from ALL feeds @ ${ENDPOINT}\n` +
-      (ALL ? "  (all time)\n" : `  since: ${SINCE_ISO}\n`) +
-      `  limit/page: ${LIMIT}\n  output: ${OUT_PATH}`
+      `Querying detections @ ${ENDPOINT}\n` +
+        (ALL ? "  (all time)\n" : `  since: ${SINCE_ISO}\n`) +
+        (NODE_NAME ? `  nodeName filter: ${NODE_NAME}\n` : "  nodeName filter: (none)\n") +
+        `  limit/page: ${LIMIT}\n  output: ${OUT_PATH}`
     );
 
     const detections = await fetchAllDetections();
@@ -173,9 +182,10 @@ async function main() {
 
     const payload = {
       since: ALL ? null : SINCE_ISO,
+      nodeName: NODE_NAME || null,
       count: detections.length,
       generatedAt: new Date().toISOString(),
-      detections
+      detections,
     };
 
     await fs.writeFile(OUT_PATH, JSON.stringify(payload, null, 2));
