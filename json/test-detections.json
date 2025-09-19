@@ -1,0 +1,27 @@
+{
+  "since": null,
+  "count": 15647,
+  "generatedAt": "2025-09-18T04:22:53.035Z",
+  "detections": [
+    {
+      "candidate": {
+        "feedId": "feed_02u8r4EPCPy95hn4R4tQfN",
+        "id": "cand_02ulWV2Ehmhkuldn7zbVwF"
+      },
+      "category": null,
+      "description": "water",
+      "feed": {
+        "id": "feed_02u8r4EPCPy95hn4R4tQfN",
+        "name": "Port Townsend",
+        "nodeName": "rpi_port_townsend",
+        "slug": "port-townsend"
+      },
+      "feedId": "feed_02u8r4EPCPy95hn4R4tQfN",
+      "id": "det_02ulWVtLmCXH2X7uef2TWt",
+      "listenerCount": null,
+      "playerOffset": "270.343318",
+      "playlistTimestamp": 1557510493,
+      "timestamp": "2019-05-10T17:52:43.000000Z"
+    }
+  ]
+}

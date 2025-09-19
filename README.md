@@ -1,4 +1,6 @@
-npx ts-node src/.ts csv/all-detections.json \
+```
+
+npx ts-node src/pairs-from-hls.ts json/example-detections.json \
   --via ffmpeg \
   --toS3 \
   --bucket acoustic-sandbox \
@@ -10,3 +12,5 @@ npx ts-node src/.ts csv/all-detections.json \
   --concurrency 10 \
   --encodeConcurrency 4 \
   --flacLevel 3
+
+```

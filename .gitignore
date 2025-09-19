@@ -24,6 +24,7 @@ hls_api_outputs/
 # ignore output csv files
 *.csv
 **/*.csv
+csv/
 
 # ignore archive folder
-archive
+archive/
